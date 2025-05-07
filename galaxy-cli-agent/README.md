@@ -12,6 +12,8 @@ Galaxy CLI Agent provides both a structured command-line interface and an intera
 - **Tools Management**: Search, view details, and execute Galaxy tools
 - **Workflow Integration**: Search workflows in IWC and import them to Galaxy
 - **History Operations**: Manage Galaxy histories and datasets
+- **File Upload**: Upload local files to Galaxy histories
+- **Methods Generation**: Generate academic methods sections with citations from Galaxy histories
 - **Interactive Mode**: Use natural language to interact with Galaxy
 
 ## Installation
@@ -48,6 +50,22 @@ GALAXY_API_KEY=<galaxy_api_key>
 galaxy-agent connect --url <galaxy_url> --api-key <galaxy_api_key>
 ```
 
+### Setting Up Google API Key for Gemini
+
+The CLI agent uses Google's Gemini model for natural language understanding and generation. You need to set up a Google API key to use this feature:
+
+1. Using environment variable:
+```bash
+export GOOGLE_API_KEY=<your_google_api_key>
+```
+
+2. Adding to your `.env` file:
+```
+GOOGLE_API_KEY=<your_google_api_key>
+```
+
+You can obtain a Google API key by signing up for Google AI Studio at https://ai.google.dev/.
+
 ### Command Line Examples
 
 Search for tools:
@@ -58,6 +76,11 @@ galaxy-agent tools search fastq
 Get tool details:
 ```bash
 galaxy-agent tools details <tool_id> --io
+```
+
+Get tool citations:
+```bash
+galaxy-agent tools citations <tool_id>
 ```
 
 List all histories:
@@ -80,6 +103,16 @@ Import a workflow from IWC:
 galaxy-agent workflow import <trs_id>
 ```
 
+Upload a file to Galaxy:
+```bash
+galaxy-agent file upload /path/to/file.fastq --history <history_id>
+```
+
+Generate methods section:
+```bash
+galaxy-agent methods generate <history_id>
+```
+
 ### Interactive Mode
 
 Start the interactive mode for natural language interaction:
@@ -92,7 +125,50 @@ Example interactions:
 Galaxy Agent> Show me tools for RNA-seq analysis
 Galaxy Agent> Create a new history called RNA-seq analysis
 Galaxy Agent> Find workflows for single-cell RNA-seq
+Galaxy Agent> Generate a methods section for my history 1a2b3c
 ```
+
+## Methods Generation
+
+One of the most powerful features of the Galaxy CLI Agent is its ability to automatically generate academic methods sections based on your Galaxy histories. This feature:
+
+1. Extracts all tools used in a history with their parameters
+2. Collects citation information for each tool
+3. Generates a structured methods section suitable for inclusion in academic papers
+
+To use this feature:
+
+```bash
+galaxy-agent methods generate <history_id>
+```
+
+The resulting methods section will include:
+- A general overview of the analysis
+- Detailed information about each tool used
+- Parameter settings for each tool
+- Properly formatted citations
+
+You can save the generated methods section to a file when prompted.
+
+## Architecture
+
+The Galaxy CLI Agent uses a client-server architecture:
+
+1. **Python MCP Server**: Contains core Galaxy API operations for:
+   - Tool citations retrieval
+   - History details fetching
+   - Job details access
+   
+2. **CLI Agent**: Uses the MCP server and adds higher-level functionality:
+   - Methods section generation
+   - Interactive natural language interface
+   - Command-line argument handling
+   - Rich output formatting
+
+This separation of concerns allows:
+- Core Galaxy operations to be shared between different clients
+- Higher-level features to be built on top of basic operations
+- Easier maintenance and extension of the codebase
 
 ## Development
 
