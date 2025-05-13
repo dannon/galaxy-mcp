@@ -1,7 +1,7 @@
 # Galaxy MCP Server
 import os
 from typing import Any, Dict, List, Optional
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from bioblend.galaxy import GalaxyInstance
 import requests
 from dotenv import load_dotenv, find_dotenv
@@ -537,4 +537,5 @@ def import_workflow_from_iwc(trs_id: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    # Run with specific transport settings for compatibility with CLI agent
+    mcp.run(transport="sse", port=3000)
