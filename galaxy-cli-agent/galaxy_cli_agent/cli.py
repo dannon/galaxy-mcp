@@ -416,6 +416,18 @@ def interact_command() -> None:
         console.print("Attempting to connect to Galaxy using environment variables...", style="yellow")
         run_interactive_command("connect", deps, loop)
         
+        # Register signal handler for CTRL+C
+        import signal
+        
+        def signal_handler(sig, frame):
+            console.print("\nExiting Galaxy Agent. Goodbye!", style="green")
+            loop.close()
+            import sys
+            sys.exit(0)
+            
+        # Register the signal handler
+        signal.signal(signal.SIGINT, signal_handler)
+        
         while True:
             try:
                 # Get user input with proper rich formatting
@@ -439,6 +451,7 @@ def interact_command() -> None:
                     - generate methods <history_id>: Generate methods section
                     - help: Show this help message
                     - exit/quit/bye: Exit the program
+                    - Ctrl+C: Exit the program
                     
                     You can also use natural language to ask about Galaxy!
                     """
@@ -450,7 +463,9 @@ def interact_command() -> None:
                 run_interactive_command(user_input, deps, loop)
                 
             except KeyboardInterrupt:
-                console.print("\nGoodbye!", style="green")
+                # This should now be handled by the signal handler
+                # but keep as a fallback
+                console.print("\nExiting Galaxy Agent. Goodbye!", style="green")
                 break
             except Exception as e:
                 console.print(f"Error: {str(e)}", style="red")
