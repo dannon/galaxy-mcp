@@ -418,8 +418,9 @@ def interact_command() -> None:
         
         while True:
             try:
-                # Get user input
-                user_input = typer.prompt("\n[bold cyan]Galaxy Agent>[/] ")
+                # Get user input with proper rich formatting
+                console.print("\n[bold cyan]Galaxy Agent>[/]", end="")
+                user_input = input(" ")
                 
                 # Check for exit command
                 if user_input.lower() in ("exit", "quit", "bye"):
