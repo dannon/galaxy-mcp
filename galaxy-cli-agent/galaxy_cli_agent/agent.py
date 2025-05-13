@@ -41,7 +41,7 @@ class Dataset(BaseModel):
 
 class Citation(BaseModel):
     """Citation model for Galaxy tools."""
-    
+
     type: str
     citation: str
 
@@ -111,25 +111,30 @@ async def connect(
         if not url or not api_key:
             env_url = os.environ.get("GALAXY_URL")
             env_api_key = os.environ.get("GALAXY_API_KEY")
-            
+
             url = url or env_url
             api_key = api_key or env_api_key
-            
+
             if not url or not api_key:
                 return GalaxyResponse(
                     success=False,
                     message="Galaxy URL and API key must be provided either as arguments or environment variables.",
                 )
-        
+
         # If already connected, check if we're using the same credentials
-        if ctx.deps.connected and ctx.deps.client and ctx.deps.galaxy_url == url and ctx.deps.api_key == api_key:
+        if (
+            ctx.deps.connected
+            and ctx.deps.client
+            and ctx.deps.galaxy_url == url
+            and ctx.deps.api_key == api_key
+        ):
             # We're already connected with these credentials
             try:
                 # Verify connection is still active
                 response = await ctx.deps.client.get("api/users/current")
                 response.raise_for_status()
                 user_info = response.json()
-                
+
                 return GalaxyResponse(
                     success=True,
                     message="Already connected to Galaxy",
@@ -138,11 +143,11 @@ async def connect(
             except:
                 # Connection failed, we'll reconnect
                 pass
-        
+
         # Close existing client if we have one but credentials changed
         if ctx.deps.client:
             await ctx.deps.client.aclose()
-        
+
         # Format URL to ensure it ends with '/'
         galaxy_url = url if url.endswith("/") else f"{url}/"
 
@@ -246,7 +251,7 @@ async def get_tool_details(
         params = {}
         if io_details:
             params["io_details"] = "true"
-            
+
         response = await ctx.deps.client.get(f"api/tools/{tool_id}", params=params)
         response.raise_for_status()
         tool_info = response.json()
@@ -376,9 +381,7 @@ async def get_iwc_workflows(ctx: RunContext[GalaxyDependencies]) -> GalaxyRespon
 
 
 @galaxy_agent.tool
-async def search_iwc_workflows(
-    ctx: RunContext[GalaxyDependencies], query: str
-) -> GalaxyResponse:
+async def search_iwc_workflows(ctx: RunContext[GalaxyDependencies], query: str) -> GalaxyResponse:
     """
     Search for workflows in the IWC manifest.
 
@@ -491,9 +494,7 @@ async def import_workflow_from_iwc(
 
 @galaxy_agent.tool
 async def upload_file(
-    ctx: RunContext[GalaxyDependencies], 
-    path: str, 
-    history_id: Optional[str] = None
+    ctx: RunContext[GalaxyDependencies], path: str, history_id: Optional[str] = None
 ) -> GalaxyResponse:
     """
     Upload a local file to Galaxy.
@@ -517,7 +518,7 @@ async def upload_file(
 
         # Get the file name from the path
         file_name = os.path.basename(path)
-        
+
         # Read file content
         with open(path, "rb") as f:
             file_content = f.read()
@@ -525,13 +526,9 @@ async def upload_file(
         # Prepare form data
         files = {"files_0|file_data": (file_name, file_content)}
         payload = {"history_id": history_id} if history_id else {}
-        
+
         # Upload file to Galaxy
-        response = await ctx.deps.client.post(
-            "api/tools/fetch",
-            data=payload,
-            files=files
-        )
+        response = await ctx.deps.client.post("api/tools/fetch", data=payload, files=files)
         response.raise_for_status()
         upload_result = response.json()
 
@@ -550,45 +547,42 @@ async def upload_file(
 
 
 @galaxy_agent.tool
-async def get_tool_citations(
-    ctx: RunContext[GalaxyDependencies], tool_id: str
-) -> GalaxyResponse:
+async def get_tool_citations(ctx: RunContext[GalaxyDependencies], tool_id: str) -> GalaxyResponse:
     """
     Get citation information for a specific tool.
-    
+
     Args:
         tool_id: ID of the tool
-        
+
     Returns:
         Tool citation information
     """
     try:
         ensure_connected(ctx)
-        
+
         # Get tool details which include citations
         response = await ctx.deps.client.get(f"api/tools/{tool_id}")
         response.raise_for_status()
         tool_info = response.json()
-        
+
         # Extract citation information
         citations = tool_info.get("citations", [])
         formatted_citations = []
-        
+
         for citation in citations:
             formatted_citations.append(
                 Citation(
-                    type=citation.get("type", "unknown"),
-                    citation=citation.get("citation", "")
+                    type=citation.get("type", "unknown"), citation=citation.get("citation", "")
                 )
             )
-        
+
         return GalaxyResponse(
             success=True,
             message=f"Found {len(formatted_citations)} citations for tool '{tool_id}'",
             data={
                 "tool_name": tool_info.get("name", tool_id),
                 "tool_version": tool_info.get("version", "unknown"),
-                "citations": formatted_citations
+                "citations": formatted_citations,
             },
         )
     except ValueError as e:
@@ -606,39 +600,34 @@ async def get_history_details(
 ) -> GalaxyResponse:
     """
     Get detailed information about a specific history, including datasets.
-    
+
     Args:
         history_id: ID of the history
-        
+
     Returns:
         History details with datasets
     """
     try:
         ensure_connected(ctx)
-        
+
         # Get history details and contents from the API
         response = await ctx.deps.client.get(
-            f"api/histories/{history_id}", 
-            params={"view": "detailed"}
+            f"api/histories/{history_id}", params={"view": "detailed"}
         )
         response.raise_for_status()
         history_info = response.json()
-        
+
         # Get history contents
         contents_response = await ctx.deps.client.get(
-            f"api/histories/{history_id}/contents", 
-            params={"view": "detailed"}
+            f"api/histories/{history_id}/contents", params={"view": "detailed"}
         )
         contents_response.raise_for_status()
         contents = contents_response.json()
-        
+
         return GalaxyResponse(
             success=True,
             message=f"Successfully retrieved details for history '{history_info.get('name')}'",
-            data={
-                "history": history_info,
-                "contents": contents
-            },
+            data={"history": history_info, "contents": contents},
         )
     except ValueError as e:
         return GalaxyResponse(success=False, message=str(e))
@@ -650,26 +639,24 @@ async def get_history_details(
 
 
 @galaxy_agent.tool
-async def get_job_details(
-    ctx: RunContext[GalaxyDependencies], job_id: str
-) -> GalaxyResponse:
+async def get_job_details(ctx: RunContext[GalaxyDependencies], job_id: str) -> GalaxyResponse:
     """
     Get detailed information about a specific job.
-    
+
     Args:
         job_id: ID of the job
-        
+
     Returns:
         Job details with tool information
     """
     try:
         ensure_connected(ctx)
-        
+
         # Get job details from the API
         response = await ctx.deps.client.get(f"api/jobs/{job_id}")
         response.raise_for_status()
         job_info = response.json()
-        
+
         return GalaxyResponse(
             success=True,
             message=f"Successfully retrieved details for job '{job_id}'",
@@ -690,62 +677,62 @@ async def generate_methods_section(
 ) -> GalaxyResponse:
     """
     Generate a methods section based on tools used in a history.
-    
+
     Args:
         history_id: ID of the history
-        
+
     Returns:
         Formatted methods section with citations
     """
     try:
         ensure_connected(ctx)
-        
+
         # Get history details
         history_response = await get_history_details(ctx, history_id)
         if not history_response.success:
             return history_response
-        
+
         history_info = history_response.data["history"]
         contents = history_response.data["contents"]
-        
+
         # Filter for successful jobs
         jobs_info = []
         tools_used = []
         citations = []
-        
+
         # Process all datasets in history
         for dataset in contents:
             # Skip collections and datasets without creating_job
             if dataset.get("history_content_type") != "dataset" or not dataset.get("creating_job"):
                 continue
-            
+
             # Only include successfully completed jobs/tools
             if dataset.get("state") != "ok":
                 continue
-                
+
             job_id = dataset.get("creating_job")
             tool_id = dataset.get("tool_id")
-            
+
             # Skip if we've already processed this tool
             if tool_id in [t.get("id") for t in tools_used]:
                 continue
-                
+
             # Get tool details and citations
             tool_response = await get_tool_details(ctx, tool_id)
             if tool_response.success:
                 tool_info = tool_response.data["tool"]
                 tools_used.append(tool_info)
-                
+
                 # Get citations
                 citations_response = await get_tool_citations(ctx, tool_id)
                 if citations_response.success and citations_response.data["citations"]:
                     citations.extend(citations_response.data["citations"])
-            
+
             # Get job details
             job_response = await get_job_details(ctx, job_id)
             if job_response.success:
                 jobs_info.append(job_response.data["job"])
-                
+
         # Organize the data for methods generation
         methods_data = {
             "history_name": history_info.get("name", "Unknown history"),
@@ -753,7 +740,7 @@ async def generate_methods_section(
             "jobs": jobs_info,
             "citations": citations,
         }
-        
+
         # Generate methods text that includes:
         # 1. A general overview of the analysis
         # 2. A description of each tool and its parameters
@@ -766,36 +753,36 @@ async def generate_methods_section(
             f"generated using {len(tools_used)} distinct tools.\n\n"
             f"## Analysis Details\n\n"
         )
-        
+
         # Add details for each tool
         for tool in tools_used:
             methods_text += f"### {tool.get('name')} (version {tool.get('version', 'unknown')})\n\n"
             methods_text += f"{tool.get('description', 'No description available')}\n\n"
-            
+
             # Add parameter details if available
             for job in jobs_info:
                 if job.get("tool_id") == tool.get("id"):
                     methods_text += "**Parameters used:**\n\n"
                     params = job.get("params", {})
                     for param_name, param_value in params.items():
-                        if param_name not in ["__workflow_invocation_uuid__", "__rerun_remap_job_id__"]:
+                        if param_name not in [
+                            "__workflow_invocation_uuid__",
+                            "__rerun_remap_job_id__",
+                        ]:
                             methods_text += f"- {param_name}: {param_value}\n"
                     methods_text += "\n"
                     break
-        
+
         # Add citations section
         if citations:
             methods_text += "## References\n\n"
             for i, citation in enumerate(citations, 1):
                 methods_text += f"{i}. {citation.citation}\n"
-                
+
         return GalaxyResponse(
             success=True,
             message=f"Successfully generated methods section for history '{history_info.get('name')}'",
-            data={
-                "methods_text": methods_text,
-                "methods_data": methods_data
-            },
+            data={"methods_text": methods_text, "methods_data": methods_data},
         )
     except ValueError as e:
         return GalaxyResponse(success=False, message=str(e))

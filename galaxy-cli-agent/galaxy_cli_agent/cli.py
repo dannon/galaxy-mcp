@@ -45,9 +45,9 @@ def load_env_vars() -> tuple[Optional[str], Optional[str], Optional[str]]:
         load_dotenv(dotenv_path)
 
     return (
-        os.environ.get("GALAXY_URL"), 
+        os.environ.get("GALAXY_URL"),
         os.environ.get("GALAXY_API_KEY"),
-        os.environ.get("GOOGLE_API_KEY")
+        os.environ.get("GOOGLE_API_KEY"),
     )
 
 
@@ -55,7 +55,7 @@ def load_env_vars() -> tuple[Optional[str], Optional[str], Optional[str]]:
 def init_dependencies() -> GalaxyDependencies:
     """Initialize Galaxy dependencies from environment variables or .env file."""
     galaxy_url, api_key, google_api_key = load_env_vars()
-    
+
     # Set the Google API key for Gemini
     if google_api_key:
         os.environ["GOOGLE_API_KEY"] = google_api_key
@@ -63,15 +63,15 @@ def init_dependencies() -> GalaxyDependencies:
         console.print(
             "Warning: GOOGLE_API_KEY not found in environment variables or .env file. "
             "This is required for the Gemini model to function.",
-            style="yellow"
+            style="yellow",
         )
-    
+
     deps = GalaxyDependencies(
         galaxy_url=galaxy_url,
         api_key=api_key,
         connected=False,
     )
-    
+
     return deps
 
 
@@ -86,6 +86,7 @@ def run_agent_command(prompt: str, deps: GalaxyDependencies, error_prefix: str =
     except Exception as e:
         console.print(f"{error_prefix}: {str(e)}", style="red")
         import traceback
+
         console.print(traceback.format_exc(), style="dim")
 
 
@@ -94,13 +95,13 @@ def handle_response(response: GalaxyResponse) -> None:
     """Handle Galaxy agent response and display it nicely."""
     if response.success:
         console.print(Panel(response.message, title="Success", style="green"))
-        
+
         # Handle different data types
         if response.data:
             if "user" in response.data:
                 user = response.data["user"]
                 console.print(f"Connected as: {user.get('username', 'Unknown user')}")
-            
+
             elif "tools" in response.data:
                 tools = response.data["tools"]
                 if tools:
@@ -108,7 +109,7 @@ def handle_response(response: GalaxyResponse) -> None:
                     table.add_column("ID", style="cyan")
                     table.add_column("Name", style="green")
                     table.add_column("Description")
-                    
+
                     for tool in tools:
                         table.add_row(
                             tool.id,
@@ -116,7 +117,7 @@ def handle_response(response: GalaxyResponse) -> None:
                             tool.description or "No description",
                         )
                     console.print(table)
-            
+
             elif "histories" in response.data:
                 histories = response.data["histories"]
                 if histories:
@@ -124,7 +125,7 @@ def handle_response(response: GalaxyResponse) -> None:
                     table.add_column("ID", style="cyan")
                     table.add_column("Name", style="green")
                     table.add_column("Items", style="blue")
-                    
+
                     for history in histories:
                         table.add_row(
                             history.id,
@@ -132,40 +133,40 @@ def handle_response(response: GalaxyResponse) -> None:
                             str(history.items_count),
                         )
                     console.print(table)
-            
+
             elif "history" in response.data:
                 history = response.data["history"]
                 console.print(f"History ID: {history.id}")
                 console.print(f"Name: {history.name}")
-            
+
             elif "workflows" in response.data:
                 workflows = response.data["workflows"]
                 if workflows:
                     table = Table(title="Galaxy Workflows")
                     table.add_column("TRS ID", style="cyan")
                     table.add_column("Name", style="green")
-                    
+
                     for workflow in workflows:
                         table.add_row(
                             workflow.get("trsID", "Unknown"),
                             workflow.get("definition", {}).get("name", "Unnamed workflow"),
                         )
                     console.print(table)
-            
+
             elif "imported_workflow" in response.data:
                 workflow = response.data["imported_workflow"]
                 console.print(f"Workflow ID: {workflow.get('id')}")
                 console.print(f"Name: {workflow.get('name')}")
-                
+
             elif "upload_result" in response.data:
                 upload = response.data["upload_result"]
                 console.print(f"Upload job ID: {upload.get('jobs', [{}])[0].get('id', 'Unknown')}")
                 console.print(f"Status: {upload.get('jobs', [{}])[0].get('state', 'Unknown')}")
-                
+
             elif "methods_text" in response.data:
                 methods_text = response.data["methods_text"]
                 console.print(Markdown(methods_text))
-                
+
                 # Offer to save to file
                 save_to_file = typer.confirm("Save methods section to a file?")
                 if save_to_file:
@@ -191,7 +192,7 @@ def connect_command(
         env_url, env_api_key, google_api_key = load_env_vars()
         url = url or env_url
         api_key = api_key or env_api_key
-        
+
         # Set the Google API key for Gemini
         if google_api_key:
             os.environ["GOOGLE_API_KEY"] = google_api_key
@@ -199,9 +200,9 @@ def connect_command(
             console.print(
                 "Warning: GOOGLE_API_KEY not found in environment variables or .env file. "
                 "This is required for the Gemini model to function.",
-                style="yellow"
+                style="yellow",
             )
-        
+
         if not url or not api_key:
             console.print(
                 "Error: Galaxy URL and API key must be provided either as command arguments, "
@@ -209,10 +210,10 @@ def connect_command(
                 style="red",
             )
             return
-    
+
     # Initialize dependencies
     deps = GalaxyDependencies()
-    
+
     # Run connect tool using the helper function
     run_agent_command("Connect to Galaxy", deps, "Error connecting to Galaxy")
 
@@ -222,7 +223,7 @@ def search_tools_command(query: str = typer.Argument(..., help="Search query")) 
     """Search for Galaxy tools."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run search_tools tool using the helper function
     run_agent_command(f"Search for Galaxy tools matching: {query}", deps, "Error searching tools")
 
@@ -235,12 +236,12 @@ def tool_details_command(
     """Get detailed information about a specific tool."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run get_tool_details tool using the helper function
     run_agent_command(
         f"Get details for tool: {tool_id} with IO details: {io_details}",
         deps,
-        "Error retrieving tool details"
+        "Error retrieving tool details",
     )
 
 
@@ -251,13 +252,9 @@ def tool_citations_command(
     """Get citation information for a specific tool."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run get_tool_citations tool using the helper function
-    run_agent_command(
-        f"Get citations for tool: {tool_id}",
-        deps,
-        "Error retrieving tool citations"
-    )
+    run_agent_command(f"Get citations for tool: {tool_id}", deps, "Error retrieving tool citations")
 
 
 @history_app.command("list")
@@ -265,13 +262,9 @@ def list_histories_command() -> None:
     """List all histories in Galaxy."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run get_histories tool using the helper function
-    run_agent_command(
-        "List all histories",
-        deps,
-        "Error listing histories"
-    )
+    run_agent_command("List all histories", deps, "Error listing histories")
 
 
 @history_app.command("create")
@@ -279,13 +272,9 @@ def create_history_command(name: str = typer.Argument(..., help="History name"))
     """Create a new history."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run create_history tool using the helper function
-    run_agent_command(
-        f"Create a new history named: {name}",
-        deps,
-        "Error creating history"
-    )
+    run_agent_command(f"Create a new history named: {name}", deps, "Error creating history")
 
 
 @history_app.command("details")
@@ -295,12 +284,10 @@ def history_details_command(
     """Get detailed information about a specific history."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run get_history_details tool using the helper function
     run_agent_command(
-        f"Get details for history: {history_id}",
-        deps,
-        "Error retrieving history details"
+        f"Get details for history: {history_id}", deps, "Error retrieving history details"
     )
 
 
@@ -309,13 +296,9 @@ def list_workflows_command() -> None:
     """List all workflows from IWC."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run get_iwc_workflows tool using the helper function
-    run_agent_command(
-        "List all workflows from IWC",
-        deps,
-        "Error listing workflows"
-    )
+    run_agent_command("List all workflows from IWC", deps, "Error listing workflows")
 
 
 @workflow_app.command("search")
@@ -323,27 +306,21 @@ def search_workflows_command(query: str = typer.Argument(..., help="Search query
     """Search for workflows in IWC."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run search_iwc_workflows tool using the helper function
-    run_agent_command(
-        f"Search for workflows matching: {query}",
-        deps,
-        "Error searching workflows"
-    )
+    run_agent_command(f"Search for workflows matching: {query}", deps, "Error searching workflows")
 
 
 @workflow_app.command("import")
-def import_workflow_command(trs_id: str = typer.Argument(..., help="TRS ID of the workflow")) -> None:
+def import_workflow_command(
+    trs_id: str = typer.Argument(..., help="TRS ID of the workflow"),
+) -> None:
     """Import a workflow from IWC to Galaxy."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run import_workflow_from_iwc tool using the helper function
-    run_agent_command(
-        f"Import workflow with TRS ID: {trs_id}",
-        deps,
-        "Error importing workflow"
-    )
+    run_agent_command(f"Import workflow with TRS ID: {trs_id}", deps, "Error importing workflow")
 
 
 @file_app.command("upload")
@@ -354,12 +331,12 @@ def upload_file_command(
     """Upload a file to Galaxy."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Run upload_file tool using the helper function
     run_agent_command(
         f"Upload file: {path} to history: {history_id or 'default history'}",
         deps,
-        "Error uploading file"
+        "Error uploading file",
     )
 
 
@@ -370,15 +347,17 @@ def generate_methods_command(
     """Generate a methods section based on tools used in a history."""
     # Initialize dependencies
     deps = init_dependencies()
-    
+
     # Show progress message
-    console.print("Generating methods section from history... This may take a moment.", style="yellow")
-    
+    console.print(
+        "Generating methods section from history... This may take a moment.", style="yellow"
+    )
+
     # Run generate_methods_section tool using the helper function
     run_agent_command(
         f"Generate methods section for history: {history_id}",
         deps,
-        "Error generating methods section"
+        "Error generating methods section",
     )
 
 
@@ -391,6 +370,7 @@ def run_interactive_command(user_input: str, deps: GalaxyDependencies, loop) -> 
     except Exception as e:
         console.print(f"Error processing request: {str(e)}", style="red")
         import traceback
+
         console.print(traceback.format_exc(), style="dim")
 
 
@@ -399,46 +379,51 @@ def interact_command() -> None:
     """Start interactive mode with natural language interface."""
     # Initialize dependencies
     deps = init_dependencies()
-    
-    console.print(Panel(
-        "Starting interactive mode. Type 'exit' to quit.\n"
-        "Type 'help' to see available commands.",
-        title="Galaxy Agent Interactive Mode",
-        style="blue",
-    ))
-    
+
+    console.print(
+        Panel(
+            "Starting interactive mode. Type 'exit' to quit.\n"
+            "Type 'help' to see available commands.",
+            title="Galaxy Agent Interactive Mode",
+            style="blue",
+        )
+    )
+
     # Create a single event loop for the entire interactive session
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
+
     try:
         # Try to auto-connect to Galaxy using environment variables
-        console.print("Attempting to connect to Galaxy using environment variables...", style="yellow")
+        console.print(
+            "Attempting to connect to Galaxy using environment variables...", style="yellow"
+        )
         run_interactive_command("connect", deps, loop)
-        
+
         # Register signal handler for CTRL+C
         import signal
-        
+
         def signal_handler(sig, frame):
             console.print("\nExiting Galaxy Agent. Goodbye!", style="green")
             loop.close()
             import sys
+
             sys.exit(0)
-            
+
         # Register the signal handler
         signal.signal(signal.SIGINT, signal_handler)
-        
+
         while True:
             try:
                 # Get user input with proper rich formatting
                 console.print("\n[bold cyan]Galaxy Agent>[/]", end="")
                 user_input = input(" ")
-                
+
                 # Check for exit command
                 if user_input.lower() in ("exit", "quit", "bye"):
                     console.print("Goodbye!", style="green")
                     break
-                    
+
                 # Check for help command
                 if user_input.lower() == "help":
                     help_text = """
@@ -457,11 +442,11 @@ def interact_command() -> None:
                     """
                     console.print(Panel(help_text, title="Help", style="blue"))
                     continue
-                
-                # Run agent with user input 
+
+                # Run agent with user input
                 console.print("Processing...", style="yellow")
                 run_interactive_command(user_input, deps, loop)
-                
+
             except KeyboardInterrupt:
                 # This should now be handled by the signal handler
                 # but keep as a fallback
