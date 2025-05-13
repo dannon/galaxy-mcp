@@ -66,6 +66,28 @@ GOOGLE_API_KEY=<your_google_api_key>
 
 You can obtain a Google API key by signing up for Google AI Studio at https://ai.google.dev/.
 
+### Connecting to MCP Server (Optional)
+
+For enhanced natural language capabilities, you can connect the CLI agent to the Model Context Protocol (MCP) server included in this repository:
+
+1. Start the MCP server in a separate terminal:
+```bash
+cd ../mcp-server-galaxy-py
+python -m mcp run main.py
+```
+
+2. Configure the CLI agent to use the MCP server:
+```bash
+export MCP_SERVER_URL=http://localhost:3000/sse
+```
+
+3. Or add to your `.env` file:
+```
+MCP_SERVER_URL=http://localhost:3000/sse
+```
+
+When connected to the MCP server, the CLI agent gains access to the full Galaxy API through natural language, allowing for more complex operations and better understanding of bioinformatics queries.
+
 ### Command Line Examples
 
 Search for tools:
