@@ -1,25 +1,25 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "galaxy-cli-agent"
 version = "0.1.0"
 description = "CLI-based agent for interacting with Galaxy using pydantic-ai"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
     {name = "Galaxy Team"}
 ]
 dependencies = [
     "pydantic>=2.0.0,<3.0.0",
-    "pydantic-ai>=0.1.30",  # Upgraded for better MCP support
+    "pydantic-ai>=0.1.30",
     "httpx>=0.24.0",
     "typer>=0.9.0",
-    "rich>=13.0.0",
+    "rich>=13.0.0", 
     "python-dotenv>=1.0.0",
-    "google-generativeai>=0.3.0"
+    # Removed google-generativeai - will use pydantic-ai's model handling
 ]
 
 [project.optional-dependencies]
@@ -36,15 +36,19 @@ galaxy-agent = "galaxy_cli_agent.cli:app"
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
-select = ["E", "F", "I"]
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "UP", "A", "C4", "SIM", "PT"]
+ignore = ["F403", "B904", "B017", "PT011", "SIM117"]
 
 [tool.black]
 line-length = 100
-target-version = ["py39"]
+target-version = ["py310"]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
