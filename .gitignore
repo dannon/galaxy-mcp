@@ -3,7 +3,11 @@ node_modules/
 
 # Build output
 dist/
+build/
 __pycache__/
+*.egg-info/
+*.egg
+*.whl
 
 # Environment variables
 .env
@@ -27,6 +31,16 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache and test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Test coverage
 coverage/

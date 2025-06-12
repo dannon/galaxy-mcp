@@ -2,7 +2,7 @@
 
 import asyncio
 import os
-from typing import List, Optional
+from typing import Optional
 
 import httpx
 from dotenv import find_dotenv, load_dotenv
@@ -12,7 +12,13 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.markdown import Markdown
 
-from galaxy_cli_agent.agent import GalaxyDependencies, galaxy_agent, GalaxyResponse, MCP_SERVER_BASE_URL
+from galaxy_cli_agent.agent import (
+    galaxy_agent, 
+    GalaxyDependencies, 
+    GalaxyResponse, 
+    create_dependencies,
+    MCP_SERVER_BASE_URL
+)
 
 # Create Typer app and console for rich output
 app = typer.Typer(
@@ -37,46 +43,22 @@ app.add_typer(methods_app, name="methods")
 
 
 # Helper function to load environment variables
-def load_env_vars() -> tuple[Optional[str], Optional[str], Optional[str]]:
-    """Load Galaxy URL, API key, and Google API key from environment variables or .env file."""
-    # Try to load environment variables from .env file
+def load_env_vars() -> None:
+    """Load environment variables from .env file if present."""
     dotenv_path = find_dotenv(usecwd=True)
     if dotenv_path:
         load_dotenv(dotenv_path)
 
-    return (
-        os.environ.get("GALAXY_URL"),
-        os.environ.get("GALAXY_API_KEY"),
-        os.environ.get("GOOGLE_API_KEY"),
-    )
 
-
-# Helper function to initialize Galaxy dependencies
+# Helper function to initialize Galaxy dependencies (simplified)
 def init_dependencies() -> GalaxyDependencies:
-    """Initialize Galaxy dependencies from environment variables or .env file."""
-    galaxy_url, api_key, google_api_key = load_env_vars()
-
-    # Set the Google API key for Gemini
-    if google_api_key:
-        os.environ["GOOGLE_API_KEY"] = google_api_key
-    else:
-        console.print(
-            "Warning: GOOGLE_API_KEY not found in environment variables or .env file. "
-            "This is required for the Gemini model to function.",
-            style="yellow",
-        )
-
-    deps = GalaxyDependencies(
-        galaxy_url=galaxy_url,
-        api_key=api_key,
-        connected=False,
-    )
-
-    return deps
+    """Initialize Galaxy dependencies."""
+    load_env_vars()
+    return create_dependencies()
 
 
 # Helper function to run agent commands
-async def run_agent_command_async(prompt: str, deps: GalaxyDependencies, error_prefix: str = "Error") -> None:
+async def run_agent_command_async(prompt: str, deps: GalaxyDependencies, error_prefix: str = "Error") -> Optional[GalaxyResponse]:
     """Run an agent command with standardized error handling asynchronously."""
     try:
         # Try to run with MCP servers
