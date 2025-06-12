@@ -17,7 +17,7 @@ dependencies = [
     "pydantic-ai>=0.1.30",
     "httpx>=0.24.0",
     "typer>=0.9.0",
-    "rich>=13.0.0", 
+    "rich>=13.0.0",
     "python-dotenv>=1.0.0",
     # Removed google-generativeai - will use pydantic-ai's model handling
 ]

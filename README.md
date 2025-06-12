@@ -22,7 +22,7 @@ The MCP server provides the core Galaxy operations, while the CLI agent adds nat
 - **File Management**: Upload files to Galaxy from local storage
 - **Tool Citations**: Get citation information for proper academic attribution
 
-### CLI Agent Features  
+### CLI Agent Features
 - **Natural Language Interface**: Use plain English to interact with Galaxy
 - **Intelligent Query Processing**: Understands bioinformatics terms and workflows
 - **Methods Generation**: Automatically generate academic methods sections from Galaxy histories
@@ -91,7 +91,7 @@ GALAXY_API_KEY=<galaxy_api_key>
 # Search for tools
 uv run galaxy-agent tools search "RNA-seq"
 
-# Get tool details  
+# Get tool details
 uv run galaxy-agent tools details "bwa" --io
 
 # List histories
@@ -115,7 +115,7 @@ uv run galaxy-agent interact
 
 # Example interactions:
 Galaxy Agent> Find tools for RNA-seq analysis
-Galaxy Agent> Create a new history called "Bacterial Genome Analysis" 
+Galaxy Agent> Create a new history called "Bacterial Genome Analysis"
 Galaxy Agent> Show me workflows for single-cell RNA-seq
 Galaxy Agent> What tools can process VCF files?
 Galaxy Agent> Generate a methods section for my history abc123
@@ -203,7 +203,7 @@ make install-cli    # CLI agent only
 # Run tests for all components
 make test
 
-# Run tests for specific components  
+# Run tests for specific components
 make test-mcp
 make test-cli
 

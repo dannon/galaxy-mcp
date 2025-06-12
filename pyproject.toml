@@ -20,7 +20,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11", 
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
@@ -55,7 +55,7 @@ cli = [
 # Development dependencies (consolidated)
 dev = [
     "ruff>=0.11.2",
-    "mypy>=1.8.0", 
+    "mypy>=1.8.0",
     "types-requests>=2.31.0",
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
@@ -76,7 +76,7 @@ all = [
     "galaxy-mcp-workspace[mcp-server,cli]"
 ]
 
-[project.scripts] 
+[project.scripts]
 # MCP Server
 galaxy-mcp = "galaxy_mcp.__main__:run"
 
