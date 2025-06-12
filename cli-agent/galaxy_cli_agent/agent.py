@@ -58,10 +58,8 @@ galaxy_agent = Agent(
         "You are a Galaxy bioinformatics assistant that helps users interact with "
         "Galaxy instances through natural language. Your role is to interpret user requests "
         "and translate them into appropriate Galaxy operations using the available MCP tools.\n\n"
-        
         "IMPORTANT: You have access to a full Galaxy MCP server that provides all Galaxy operations. "
         "Use the MCP tools directly rather than implementing Galaxy operations yourself.\n\n"
-        
         "Available MCP tools include:\n"
         "- connect(url, api_key): Connect to Galaxy\n"
         "- search_tools(query): Search for tools\n"
@@ -77,25 +75,21 @@ galaxy_agent = Agent(
         "- search_iwc_workflows(query): Search workflows\n"
         "- import_workflow_from_iwc(trs_id): Import workflows\n"
         "- filter_tools_by_dataset(dataset_type): Find tools for data types\n\n"
-        
         "When users provide natural language queries, analyze them to identify:\n"
         "1. The core Galaxy operation needed\n"
         "2. The resource type (tools, workflows, histories, datasets)\n"
         "3. Any parameters or qualifiers\n"
         "4. Bioinformatics context\n\n"
-        
         "Bioinformatics domain knowledge:\n"
         "- Common file formats: FASTQ, BAM, VCF, BED, GTF, GFF\n"
         "- Analysis types: RNA-seq, variant calling, metagenomics, ChIP-seq\n"
         "- Workflow stages: QC → alignment → processing → analysis\n"
         "- Key tools: BWA, Bowtie2, STAR, GATK, DESeq2, FastQC, etc.\n\n"
-        
         "Example interpretations:\n"
         "- 'Find RNA-seq tools' → search_tools with query='RNA-seq'\n"
         "- 'Create analysis history' → create_history with name='analysis'\n"
         "- 'Import variant calling workflow' → search_iwc_workflows + import\n"
         "- 'Generate methods from history abc123' → generate_methods_section\n\n"
-        
         "Always return structured GalaxyResponse objects with:\n"
         "- success: boolean indicating if operation succeeded\n"
         "- message: human-readable description\n"
@@ -111,13 +105,13 @@ async def generate_methods_section(
 ) -> GalaxyResponse:
     """
     Generate an academic methods section from a Galaxy history.
-    
+
     This is the only Galaxy-specific tool that's not duplicated from MCP server,
     as it's a higher-level analysis function.
-    
+
     Args:
         history_id: ID of the Galaxy history to analyze
-        
+
     Returns:
         Generated methods section with citations
     """
@@ -125,41 +119,39 @@ async def generate_methods_section(
         # This function uses multiple MCP tools to build a methods section
         # It will be implemented to:
         # 1. Get history details via MCP
-        # 2. Get job details for each step via MCP  
+        # 2. Get job details for each step via MCP
         # 3. Get tool citations via MCP
         # 4. Generate formatted methods text
-        
+
         return GalaxyResponse(
             success=True,
             message="Methods generation is not yet implemented in refactored version",
             operation="generate_methods_section",
             data={
                 "status": "pending_implementation",
-                "note": "This will use MCP tools: get_history_details, get_job_details, get_tool_citations"
-            }
+                "note": "This will use MCP tools: get_history_details, get_job_details, get_tool_citations",
+            },
         )
-        
+
     except Exception as e:
         return GalaxyResponse(
             success=False,
             message=f"Failed to generate methods section: {str(e)}",
-            operation="generate_methods_section"
+            operation="generate_methods_section",
         )
 
 
 # Helper function to create dependencies
 def create_dependencies() -> GalaxyDependencies:
     """Create Galaxy dependencies with MCP server availability check."""
-    return GalaxyDependencies(
-        mcp_available=len(mcp_servers_list) > 0
-    )
+    return GalaxyDependencies(mcp_available=len(mcp_servers_list) > 0)
 
 
 # Expose key components for CLI
 __all__ = [
-    "galaxy_agent", 
-    "GalaxyDependencies", 
-    "GalaxyResponse", 
+    "galaxy_agent",
+    "GalaxyDependencies",
+    "GalaxyResponse",
     "create_dependencies",
-    "MCP_SERVER_BASE_URL"
+    "MCP_SERVER_BASE_URL",
 ]

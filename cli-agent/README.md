@@ -180,7 +180,7 @@ The Galaxy CLI Agent uses a client-server architecture:
    - Tool citations retrieval
    - History details fetching
    - Job details access
-   
+
 2. **CLI Agent**: Uses the MCP server and adds higher-level functionality:
    - Methods section generation
    - Interactive natural language interface
