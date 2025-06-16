@@ -2,7 +2,6 @@
 
 import asyncio
 import os
-from typing import Optional
 
 import typer
 from dotenv import find_dotenv, load_dotenv
@@ -59,7 +58,7 @@ def init_dependencies() -> GalaxyDependencies:
 # Helper function to run agent commands
 async def run_agent_command_async(
     prompt: str, deps: GalaxyDependencies, error_prefix: str = "Error"
-) -> Optional[GalaxyResponse]:
+) -> GalaxyResponse | None:
     """Run an agent command with standardized error handling asynchronously."""
     try:
         # Try to run with MCP servers
@@ -75,7 +74,8 @@ async def run_agent_command_async(
             error_str = str(mcp_error)
             if "Method not found" in error_str:
                 console.print(
-                    "Warning: MCP server doesn't support certain methods. Falling back to direct agent use.",
+                    "Warning: MCP server doesn't support certain methods. "
+                    "Falling back to direct agent use.",
                     style="yellow",
                 )
                 # Fall back to running the agent without the MCP context manager
@@ -418,7 +418,8 @@ async def run_interactive_command_async(user_input: str, deps: GalaxyDependencie
             error_str = str(mcp_error)
             if "Method not found" in error_str:
                 console.print(
-                    "Warning: MCP server doesn't support certain methods. Falling back to direct agent use.",
+                    "Warning: MCP server doesn't support certain methods. "
+                    "Falling back to direct agent use.",
                     style="yellow",
                 )
                 # Fall back to running the agent without the MCP context manager
@@ -465,7 +466,8 @@ def test_mcp_command() -> None:
             console.print(f"MCP servers type: {type(mcp_servers)}", style="blue")
             console.print(f"MCP servers contents: {mcp_servers}", style="blue")
             console.print(
-                f"MCP servers count: {len(mcp_servers) if hasattr(mcp_servers, '__len__') else 'Not a collection'}",
+                f"MCP servers count: "
+                f"{len(mcp_servers) if hasattr(mcp_servers, '__len__') else 'Not a collection'}",
                 style="blue",
             )
         else:
@@ -534,7 +536,8 @@ def test_mcp_command() -> None:
                             style="yellow",
                         )
                         console.print(
-                            "This is likely because the FastMCP server doesn't implement the set_logging_level method",
+                            "This is likely because the FastMCP server doesn't implement the "
+                            "set_logging_level method",
                             style="yellow",
                         )
                         console.print(
@@ -644,7 +647,8 @@ def interact_command() -> None:
         # Print startup message about MCP server
         if hasattr(galaxy_agent, "mcp_servers") and galaxy_agent.mcp_servers:
             console.print(
-                f"MCP server connected at {MCP_SERVER_BASE_URL}. Natural language capabilities enhanced!",
+                f"MCP server connected at {MCP_SERVER_BASE_URL}. "
+                "Natural language capabilities enhanced!",
                 style="green",
             )
         else:
@@ -685,6 +689,11 @@ def interact_command() -> None:
 
                 # Check for help command
                 if user_input.lower() == "help":
+                    mcp_status = (
+                        "Connected to " + MCP_SERVER_BASE_URL
+                        if hasattr(galaxy_agent, "mcp_servers") and galaxy_agent.mcp_servers
+                        else "Not connected"
+                    )
                     help_text = f"""
                     Available commands:
                     - connect: Connect to Galaxy server
@@ -697,7 +706,7 @@ def interact_command() -> None:
                     - exit/quit/bye: Exit the program
                     - Ctrl+C: Exit the program
 
-                    MCP Server Status: {"Connected to " + MCP_SERVER_BASE_URL if hasattr(galaxy_agent, 'mcp_servers') and galaxy_agent.mcp_servers else "Not connected"}
+                    MCP Server Status: {mcp_status}
 
                     You can use natural language to interact with Galaxy!
                     Examples:

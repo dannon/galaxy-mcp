@@ -27,6 +27,10 @@ help:
 	@echo ""
 	@echo "  build        - Build distribution packages"
 	@echo "  clean        - Clean build artifacts"
+	@echo ""
+	@echo "For component-specific targets, see:"
+	@echo "  make -C mcp-server-galaxy-py help"
+	@echo "  make -C cli-agent help"
 
 # Installation targets
 install:
@@ -51,7 +55,7 @@ test-mcp:
 	cd mcp-server-galaxy-py && uv run pytest --cov=galaxy_mcp --cov-report=html --cov-report=term-missing
 
 test-cli:
-	cd cli-agent && uv run pytest --cov=galaxy_cli_agent --cov-report=html --cov-report=term-missing
+	$(MAKE) -C cli-agent test
 
 # Lint targets
 lint: lint-mcp lint-cli
@@ -60,14 +64,14 @@ lint-mcp:
 	cd mcp-server-galaxy-py && uv run pre-commit run --all-files --show-diff-on-failure
 
 lint-cli:
-	cd cli-agent && uv run ruff check . && uv run mypy galaxy_cli_agent
+	$(MAKE) -C cli-agent lint
 
 # Run targets
 run-mcp:
 	cd mcp-server-galaxy-py && uv run fastmcp dev src/galaxy_mcp/server.py
 
 run-cli:
-	cd cli-agent && uv run galaxy-agent
+	$(MAKE) -C cli-agent run
 
 # Build targets
 build:
@@ -86,4 +90,4 @@ quick-test-mcp:
 	cd mcp-server-galaxy-py && uv run pytest -x
 
 quick-test-cli:
-	cd cli-agent && uv run pytest -x
+	$(MAKE) -C cli-agent test-quick
