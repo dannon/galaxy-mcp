@@ -52,7 +52,7 @@ class TestCLICommands:
         assert "file" in result.output
         assert "methods" in result.output
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_run_agent_command_async_mock(self):
         """Test the async agent command runner with mocked agent."""
         from galaxy_cli_agent.agent import create_dependencies

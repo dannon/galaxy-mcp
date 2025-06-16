@@ -102,7 +102,7 @@ galaxy-agent interact            # Start interactive mode
 
 # Subcommands
 galaxy-agent tools --help        # Tool operations
-galaxy-agent workflow --help     # Workflow operations  
+galaxy-agent workflow --help     # Workflow operations
 galaxy-agent history --help      # History operations
 galaxy-agent file --help         # File operations
 galaxy-agent methods --help      # Methods generation
