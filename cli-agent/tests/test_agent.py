@@ -37,7 +37,7 @@ class TestGalaxyAgent:
         )
         assert response.data == test_data
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_methods_section_placeholder(self):
         """Test the generate_methods_section tool (placeholder implementation)."""
         # Import the function directly to test it
@@ -59,7 +59,7 @@ class TestGalaxyAgent:
 class TestAgentIntegration:
     """Test agent integration with MCP servers."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_agent_can_be_initialized(self):
         """Test that the agent can be initialized."""
         assert galaxy_agent is not None

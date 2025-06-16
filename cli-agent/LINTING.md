@@ -13,10 +13,10 @@ Both cli-agent and mcp-server-galaxy-py now use:
   - Ignored rules: F403, B904, B017, PT011, SIM117
 
 ### Differences
-1. **Pre-commit**: 
-   - mcp-server uses pre-commit hooks at the project level
-   - cli-agent has .pre-commit-config.yaml but uses direct ruff commands in Makefile
-   
+1. **Pre-commit**:
+   - Both projects share a single .pre-commit-config.yaml at the workspace root
+   - This ensures consistent formatting rules across the entire codebase
+
 2. **Black**:
    - cli-agent includes black in dev dependencies (for compatibility)
    - mcp-server relies only on ruff for formatting
@@ -58,10 +58,10 @@ uv run mypy galaxy_cli_agent
 - Applied consistent formatting with ruff
 
 ## Pre-commit Setup
-If you want to enable pre-commit hooks for cli-agent:
+Pre-commit hooks are managed at the workspace root. To enable them:
 ```bash
-cd cli-agent
+# From workspace root
 uv run pre-commit install
 ```
 
-This will run ruff checks automatically before each commit.
+This will run ruff checks automatically before each commit for all projects in the workspace.

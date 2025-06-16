@@ -67,9 +67,6 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
-# Pre-commit
-pre-commit-install:
-	uv run pre-commit install
-
-pre-commit-run:
-	uv run pre-commit run --all-files --show-diff-on-failure
+# Pre-commit (run from workspace root)
+pre-commit:
+	cd .. && uv run pre-commit run --all-files --show-diff-on-failure
