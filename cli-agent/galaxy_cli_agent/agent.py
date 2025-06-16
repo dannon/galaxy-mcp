@@ -2,7 +2,7 @@
 
 import os
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
@@ -15,8 +15,8 @@ class GalaxyResponse(BaseModel):
 
     success: bool
     message: str
-    data: Optional[Any] = None
-    operation: Optional[str] = None
+    data: Any | None = None
+    operation: str | None = None
 
 
 # Dependencies for Galaxy client (simplified - MCP server handles actual connections)
@@ -58,8 +58,9 @@ galaxy_agent = Agent(
         "You are a Galaxy bioinformatics assistant that helps users interact with "
         "Galaxy instances through natural language. Your role is to interpret user requests "
         "and translate them into appropriate Galaxy operations using the available MCP tools.\n\n"
-        "IMPORTANT: You have access to a full Galaxy MCP server that provides all Galaxy operations. "
-        "Use the MCP tools directly rather than implementing Galaxy operations yourself.\n\n"
+        "IMPORTANT: You have access to a full Galaxy MCP server that provides all Galaxy "
+        "operations. Use the MCP tools directly rather than implementing Galaxy operations "
+        "yourself.\n\n"
         "Available MCP tools include:\n"
         "- connect(url, api_key): Connect to Galaxy\n"
         "- search_tools(query): Search for tools\n"
@@ -129,7 +130,10 @@ async def generate_methods_section(
             operation="generate_methods_section",
             data={
                 "status": "pending_implementation",
-                "note": "This will use MCP tools: get_history_details, get_job_details, get_tool_citations",
+                "note": (
+                    "This will use MCP tools: get_history_details, get_job_details, "
+                    "get_tool_citations"
+                ),
             },
         )
 
