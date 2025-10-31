@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
-from pydantic_ai.mcp import MCPServerHTTP
+from pydantic_ai.mcp import MCPServerSSE
 
 
 # Models for structured responses
@@ -34,7 +34,7 @@ MCP_SERVER_BASE_URL = os.environ.get("MCP_SERVER_URL", "http://localhost:3000/ss
 # Try to create MCP server connection
 mcp_server = None
 try:
-    mcp_server = MCPServerHTTP(
+    mcp_server = MCPServerSSE(
         url=MCP_SERVER_BASE_URL,
         timeout=10,
         sse_read_timeout=30,
