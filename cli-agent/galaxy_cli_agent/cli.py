@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+from typing import Any
 
 import typer
 from dotenv import find_dotenv, load_dotenv
@@ -41,11 +42,21 @@ app.add_typer(methods_app, name="methods")
 
 
 # Helper function to load environment variables
-def load_env_vars() -> None:
-    """Load environment variables from .env file if present."""
+def load_env_vars() -> tuple[str | None, str | None, str | None]:
+    """Load environment variables from .env file if present and return them.
+
+    Returns:
+        Tuple of (GALAXY_URL, GALAXY_API_KEY, GOOGLE_API_KEY)
+    """
     dotenv_path = find_dotenv(usecwd=True)
     if dotenv_path:
         load_dotenv(dotenv_path)
+
+    return (
+        os.environ.get("GALAXY_URL"),
+        os.environ.get("GALAXY_API_KEY"),
+        os.environ.get("GOOGLE_API_KEY"),
+    )
 
 
 # Helper function to initialize Galaxy dependencies (simplified)
@@ -226,15 +237,17 @@ def handle_response(response: GalaxyResponse) -> None:
 
 @app.command("connect")
 def connect_command(
-    url: str = typer.Option(None, help="Galaxy server URL"),
-    api_key: str = typer.Option(None, help="Galaxy API key"),
+    url: str | None = typer.Option(None, help="Galaxy server URL"),
+    api_key: str | None = typer.Option(None, help="Galaxy API key"),
 ) -> None:
     """Connect to Galaxy server."""
     # If parameters are not provided, try to load from environment
     if not url or not api_key:
         env_url, env_api_key, google_api_key = load_env_vars()
-        url = url or env_url
-        api_key = api_key or env_api_key
+        if not url:
+            url = env_url
+        if not api_key:
+            api_key = env_api_key
 
         # Set the Google API key for Gemini
         if google_api_key:
@@ -404,7 +417,7 @@ def generate_methods_command(
     )
 
 
-async def run_interactive_command_async(user_input: str, deps: GalaxyDependencies) -> None:
+async def run_interactive_command_async(user_input: str, deps: GalaxyDependencies) -> GalaxyResponse | None:
     """Run a command in interactive mode asynchronously."""
     try:
         # Try to run with MCP servers
@@ -436,7 +449,7 @@ async def run_interactive_command_async(user_input: str, deps: GalaxyDependencie
         return None
 
 
-def run_interactive_command(user_input: str, deps: GalaxyDependencies, loop) -> None:
+def run_interactive_command(user_input: str, deps: GalaxyDependencies, loop: asyncio.AbstractEventLoop) -> None:
     """Run a command in interactive mode with the provided event loop."""
     try:
         # Use the same event loop for all commands, but with the proper async context
@@ -486,7 +499,7 @@ def test_mcp_command() -> None:
     asyncio.set_event_loop(loop)
 
     # Check connection using an async context manager
-    async def test_connection():
+    async def test_connection() -> bool:
         try:
             console.print(
                 "Attempting to connect to MCP server via context manager...", style="blue"
@@ -564,12 +577,12 @@ def test_mcp_command() -> None:
                             import httpx
 
                             async with httpx.AsyncClient() as client:
-                                response = await client.get(f"{base_url}/sse")
+                                http_response = await client.get(f"{base_url}/sse")
                                 console.print(
-                                    f"Direct HTTP connection status: {response.status_code}",
+                                    f"Direct HTTP connection status: {http_response.status_code}",
                                     style="blue",
                                 )
-                                if response.status_code == 200:
+                                if http_response.status_code == 200:
                                     console.print(
                                         "✅ MCP server is running and accessible via HTTP",
                                         style="green",
@@ -666,7 +679,7 @@ def interact_command() -> None:
         # Register signal handler for CTRL+C
         import signal
 
-        def signal_handler(sig, frame):
+        def signal_handler(sig: int, frame: Any) -> None:
             console.print("\nExiting Galaxy Agent. Goodbye!", style="green")
             loop.close()
             import sys
