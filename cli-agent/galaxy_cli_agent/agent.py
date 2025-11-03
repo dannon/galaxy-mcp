@@ -4,9 +4,18 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+from dotenv import find_dotenv, load_dotenv
 from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.mcp import MCPServerSSE
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
+
+# Load environment variables from .env file
+dotenv_path = find_dotenv(usecwd=True)
+if dotenv_path:
+    load_dotenv(dotenv_path)
+    print(f"Loaded environment variables from {dotenv_path}")
 
 
 # Models for structured responses
@@ -48,9 +57,36 @@ mcp_servers_list = []
 if mcp_server:
     mcp_servers_list.append(mcp_server)
 
+# Configure the LLM model from environment variables
+# Priority: TACC SambaNova > Gemini fallback
+sambanova_base_url = os.environ.get("SAMBANOVA_BASE_URL")
+sambanova_api_key = os.environ.get("SAMBANOVA_API_KEY")
+sambanova_model = os.environ.get("SAMBANOVA_MODEL", "DeepSeek-V3")
+
+# Try to create model with TACC SambaNova if configured, fall back to Gemini
+if sambanova_base_url and sambanova_api_key:
+    try:
+        # Use TACC SambaNova model with OpenAI-compatible API
+        model = OpenAIChatModel(
+            sambanova_model,
+            provider=OpenAIProvider(
+                base_url=sambanova_base_url,
+                api_key=sambanova_api_key,
+            ),
+        )
+        print(f"Using TACC SambaNova model: {sambanova_model}")
+    except Exception as e:
+        # Fall back to Gemini if TACC setup fails
+        model = "gemini-2.0-flash-exp"
+        print(f"TACC model initialization failed, falling back to Gemini: {e}")
+else:
+    # Use Gemini as default if TACC not configured
+    model = "gemini-2.0-flash-exp"
+    print("Using Gemini model (TACC not configured in environment)")
+
 # Create the Galaxy agent focused purely on natural language interpretation
 galaxy_agent = Agent(
-    "gemini-2.0-flash-exp",  # Use Pydantic AI's model handling
+    model,
     deps_type=GalaxyDependencies,
     output_type=GalaxyResponse,
     mcp_servers=mcp_servers_list,
