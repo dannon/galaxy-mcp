@@ -70,6 +70,16 @@ galaxy_state: dict[str, Any] = {
     "connected": False,
 }
 
+# Auto-initialize Galaxy client if environment variables are set
+if galaxy_state["url"] and galaxy_state["api_key"]:
+    try:
+        galaxy_state["gi"] = GalaxyInstance(url=galaxy_state["url"], key=galaxy_state["api_key"])
+        galaxy_state["connected"] = True
+        logger.info("Galaxy client initialized from environment variables (URL: %s)", galaxy_state["url"])
+    except Exception as exc:
+        logger.warning("Failed to initialize Galaxy client from environment variables: %s", exc)
+        logger.warning("You'll need to use connect() to establish a connection.")
+
 # Configure OAuth provider if requested
 public_base_url = os.environ.get("GALAXY_MCP_PUBLIC_URL")
 session_secret = os.environ.get("GALAXY_MCP_SESSION_SECRET")
